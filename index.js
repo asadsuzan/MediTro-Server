@@ -25,13 +25,21 @@ async function run() {
     const appointmentCollection = client
       .db("Doctors-portals")
       .collection("appointment");
+    // get  appointment invoice by id [get]
+    app.get("/invoice/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const invoice = await appointmentCollection.findOne(query);
+      res.send(invoice);
+      console.log(invoice);
+    });
 
-    // post appointment
+    // book appointment [post]
     app.post("/appointment", async (req, res) => {
       const appointment = await appointmentCollection.insertOne(req.body);
-      res.send({ message: "appointment booked" });
+      res.send(appointment);
     });
-    // post appointment by use
+    // get appointment for authorized user [get]
     app.get("/my_appointment/:email", async (req, res) => {
       const email = req.params.email;
 
@@ -40,14 +48,14 @@ async function run() {
 
       res.send(myAppointment);
     });
-    // get all services
+    // get all services [get]
     app.get("/services", async (req, res) => {
       const cursor = serviceCollection.find({});
       const services = await cursor.toArray();
       res.send(services);
     });
 
-    // get  services by id
+    // get selected services by id [get]
     app.get("/service/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
