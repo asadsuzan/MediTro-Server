@@ -22,6 +22,15 @@ async function run() {
     const serviceCollection = client
       .db("Doctors-portals")
       .collection("Services");
+    const appointmentCollection = client
+      .db("Doctors-portals")
+      .collection("appointment");
+
+    // post order
+    app.post("/appointment", async (req, res) => {
+      const appointment = await appointmentCollection.insertOne(req.body);
+      res.send({ message: "appointment booked" });
+    });
 
     // get all services
     app.get("/services", async (req, res) => {
