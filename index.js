@@ -26,12 +26,20 @@ async function run() {
       .db("Doctors-portals")
       .collection("appointment");
 
-    // post order
+    // post appointment
     app.post("/appointment", async (req, res) => {
       const appointment = await appointmentCollection.insertOne(req.body);
       res.send({ message: "appointment booked" });
     });
+    // post appointment by use
+    app.get("/my_appointment/:email", async (req, res) => {
+      const email = req.params.email;
 
+      const cursor = appointmentCollection.find({ email });
+      const myAppointment = await cursor.toArray();
+
+      res.send(myAppointment);
+    });
     // get all services
     app.get("/services", async (req, res) => {
       const cursor = serviceCollection.find({});
@@ -49,7 +57,7 @@ async function run() {
   } finally {
   }
 }
-run();
+run().catch(console.dir);
 
 app.get("/", async (req, res) => {
   res.send("welcome to doctor portals");
