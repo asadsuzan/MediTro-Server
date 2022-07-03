@@ -17,7 +17,7 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-// verify user
+// verify jwt token
 function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
@@ -44,10 +44,16 @@ async function run() {
       .collection("appointment");
     const userCollection = client.db("Doctors-portals").collection("users");
 
-    //  login to save user info and generate accesstoken
+    //  login to save user info and generate access-token
     app.put("/login/:email", async (req, res) => {
       const email = req.params.email;
-      const user = req.body;
+      let user = "";
+      if (req.body.email === process.env.ADMIN) {
+        user = { email: req.body.email, role: "admin" };
+      } else {
+        user = req.body;
+      }
+
       const filter = { email: email };
       const options = { upsert: true };
       const updateDoc = {
@@ -57,14 +63,31 @@ async function run() {
       var token = jwt.sign(user, process.env.SECRET_KEY);
       res.send({ result, token });
     });
-
+    // check admin
+    app.get("/isAdmin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email });
+      if (user.role === "admin") {
+        return res.status(200).send({ isAdmin: true });
+      }
+      return res.status(401).send({ isAdmin: false });
+    });
+    //  get all users info for admin board
+    app.get("/users/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const isAdmin = await userCollection.findOne({ email });
+      if (isAdmin.role === "admin") {
+        const cursor = await userCollection.find({}).toArray();
+        return res.status(200).send(cursor);
+      }
+      return res.status(401).send({ message: "forbidden access" });
+    });
     // get  appointment invoice by id [get]
     app.get("/invoice/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const invoice = await appointmentCollection.findOne(query);
       res.send(invoice);
-      console.log(invoice);
     });
 
     // book appointment [post]
