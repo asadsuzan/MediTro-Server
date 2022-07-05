@@ -47,9 +47,10 @@ async function run() {
     //  login to save user info and generate access-token
     app.put("/login/:email", async (req, res) => {
       const email = req.params.email;
+
       let user = "";
       if (req.body.email === process.env.ADMIN) {
-        user = { email: req.body.email, role: "admin" };
+        user = { ...req.body, role: "admin" };
       } else {
         user = req.body;
       }
@@ -82,6 +83,24 @@ async function run() {
       }
       return res.status(401).send({ message: "forbidden access" });
     });
+    // change appointment status for admin
+    app.put("/appointment", async (req, res) => {
+      const email = req.query.email;
+      const id = req.query.id;
+      const filter = { _id: ObjectId(id) };
+      const option = { upsert: true };
+      const updateDoc = {
+        $set: {
+          stage: req.body.stage,
+        },
+      };
+      const result = await appointmentCollection.updateOne(
+        filter,
+        updateDoc,
+        option
+      );
+      res.send(result);
+    });
     // get  appointment invoice by id [get]
     app.get("/invoice/:id", async (req, res) => {
       const id = req.params.id;
@@ -99,12 +118,22 @@ async function run() {
     app.get("/my_appointment/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const token = req.headers.authorization;
+      if (
+        req.decoded.email === process.env.ADMIN &&
+        req.decoded.email === email
+      ) {
+        const cursor = appointmentCollection.find({});
+        const myAppointment = await cursor.toArray();
+
+        return res.send(myAppointment);
+      }
       if (req.decoded.email === email) {
         const cursor = appointmentCollection.find({ email });
         const myAppointment = await cursor.toArray();
 
         return res.send(myAppointment);
       }
+
       return res.status(401).send({ message: "forbidden access" });
     });
     // get all services [get]
