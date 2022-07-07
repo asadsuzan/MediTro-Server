@@ -101,6 +101,20 @@ async function run() {
       );
       res.send(result);
     });
+    // delete appointment by id [admin route]
+    app.delete("/appointments/:id", async (req, res) => {
+      const { id } = req.params;
+      const query = { _id: ObjectId(id) };
+      const result = await appointmentCollection.deleteOne(query);
+      if (result.deletedCount === 1) {
+        res.send(result);
+      } else {
+        res.status(403).send({
+          message: "No documents matched the query. Deleted 0 documents.",
+        });
+      }
+    });
+
     // get  appointment invoice by id [get]
     app.get("/invoice/:id", async (req, res) => {
       const id = req.params.id;
