@@ -115,6 +115,16 @@ async function run() {
       }
     });
 
+    // delete user info and appointment for admin route
+    app.delete("/user/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const removeUser = await userCollection.deleteOne({ email: email });
+      const removeHistory = await appointmentCollection.deleteMany({
+        email: email,
+      });
+      res.send({ removeHistory, removeUser });
+    });
+
     // get  appointment invoice by id [get]
     app.get("/invoice/:id", async (req, res) => {
       const id = req.params.id;
