@@ -64,6 +64,24 @@ async function run() {
       var token = jwt.sign(user, process.env.SECRET_KEY);
       res.send({ result, token });
     });
+    // update user profile
+    app.put("/profile/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: req.body,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
+      console.log(req.body);
+    });
+    // get user all data for specific user
+    app.get("/profile/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await userCollection.findOne({ email });
+      res.send(result);
+    });
     // check admin
     app.get("/isAdmin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
