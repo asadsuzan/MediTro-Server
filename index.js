@@ -74,7 +74,6 @@ async function run() {
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
       res.send(result);
-      console.log(req.body);
     });
     // get user all data for specific user
     app.get("/profile/:email", async (req, res) => {
