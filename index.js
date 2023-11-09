@@ -47,7 +47,7 @@ async function run() {
     //  login to save user info and generate access-token
     app.put("/login/:email", async (req, res) => {
       const email = req.params.email;
-      console.log(email)
+
       let user = "";
       if (req.body.email === process.env.ADMIN) {
         user = { ...req.body, role: "admin" };
